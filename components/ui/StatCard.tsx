@@ -1,83 +1,123 @@
 "use client";
 
 import React from 'react';
+import { TrendingUp, ChevronDown } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.FC<any>;
-  color: 'blue' | 'green' | 'orange' | 'red' | 'purple';
+  color?: 'violet' | 'indigo' | 'teal' | 'emerald' | 'orange' | 'rose';
   trend?: string;
   trendUp?: boolean;
+  description?: string;
 }
 
 const colorClasses: Record<string, {
   bg: string;
+  bgLight: string;
   icon: string;
   text: string;
-  border: string;
-  gradient: string;
+  textMuted: string;
 }> = {
-  blue: {
-    bg: 'bg-blue-50',
-    icon: 'bg-gradient-to-br from-blue-500 to-blue-600',
-    text: 'text-blue-600',
-    border: 'border-l-blue-500',
-    gradient: 'from-blue-500 to-blue-600'
+  violet: {
+    bg: 'bg-violet-50',
+    bgLight: 'bg-violet-100/50',
+    icon: 'bg-gradient-to-br from-violet-600 to-violet-700',
+    text: 'text-violet-700',
+    textMuted: 'text-violet-600/70',
   },
-  green: {
-    bg: 'bg-green-50',
-    icon: 'bg-gradient-to-br from-green-500 to-green-600',
-    text: 'text-green-600',
-    border: 'border-l-green-500',
-    gradient: 'from-green-500 to-green-600'
+  indigo: {
+    bg: 'bg-indigo-50',
+    bgLight: 'bg-indigo-100/50',
+    icon: 'bg-gradient-to-br from-indigo-600 to-indigo-700',
+    text: 'text-indigo-700',
+    textMuted: 'text-indigo-600/70',
+  },
+  teal: {
+    bg: 'bg-teal-50',
+    bgLight: 'bg-teal-100/50',
+    icon: 'bg-gradient-to-br from-teal-600 to-teal-700',
+    text: 'text-teal-700',
+    textMuted: 'text-teal-600/70',
+  },
+  emerald: {
+    bg: 'bg-emerald-50',
+    bgLight: 'bg-emerald-100/50',
+    icon: 'bg-gradient-to-br from-emerald-600 to-emerald-700',
+    text: 'text-emerald-700',
+    textMuted: 'text-emerald-600/70',
   },
   orange: {
     bg: 'bg-orange-50',
-    icon: 'bg-gradient-to-br from-orange-500 to-orange-600',
-    text: 'text-orange-600',
-    border: 'border-l-orange-500',
-    gradient: 'from-orange-500 to-orange-600'
+    bgLight: 'bg-orange-100/50',
+    icon: 'bg-gradient-to-br from-orange-600 to-orange-700',
+    text: 'text-orange-700',
+    textMuted: 'text-orange-600/70',
   },
-  red: {
-    bg: 'bg-red-50',
-    icon: 'bg-gradient-to-br from-red-500 to-red-600',
-    text: 'text-red-600',
-    border: 'border-l-red-500',
-    gradient: 'from-red-500 to-red-600'
+  rose: {
+    bg: 'bg-rose-50',
+    bgLight: 'bg-rose-100/50',
+    icon: 'bg-gradient-to-br from-rose-600 to-rose-700',
+    text: 'text-rose-700',
+    textMuted: 'text-rose-600/70',
   },
-  purple: {
-    bg: 'bg-purple-50',
-    icon: 'bg-gradient-to-br from-purple-500 to-purple-600',
-    text: 'text-purple-600',
-    border: 'border-l-purple-500',
-    gradient: 'from-purple-500 to-purple-600'
-  }
 };
 
-export default function StatCard({ title, value, icon: Icon, color, trend, trendUp }: StatCardProps) {
+export default function StatCard({ 
+  title, 
+  value, 
+  icon: Icon, 
+  color = 'violet', 
+  trend, 
+  trendUp,
+  description 
+}: StatCardProps) {
   const colors = colorClasses[color];
 
   return (
     <div className={`
-      bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300
-      border-l-4 ${colors.border}
-      animate-fadeIn group
+      relative overflow-hidden rounded-2xl p-6 sm:p-7 shadow-soft hover:shadow-md 
+      transition-all duration-300 border border-slate-100
+      bg-white group cursor-default
     `}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-          <p className={`text-3xl font-bold ${colors.text} mt-2`}>{value}</p>
+      {/* Background gradient accent */}
+      <div className={`absolute -top-16 -right-16 w-32 h-32 ${colors.bgLight} rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity`} />
+      <div className={`absolute -bottom-16 -left-16 w-32 h-32 ${colors.bgLight} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity`} />
+
+      {/* Content */}
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          {/* Icon */}
+          <div className={`${colors.icon} rounded-2xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-300 shrink-0`}>
+            <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          </div>
+          
+          {/* Trend badge */}
           {trend && (
-            <p className={`text-sm mt-3 flex items-center gap-1 ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
-              <span>{trendUp ? '↑' : '↓'}</span>
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+              trendUp 
+                ? 'bg-emerald-100/80 text-emerald-700' 
+                : 'bg-rose-100/80 text-rose-700'
+            }`}>
+              {trendUp ? <TrendingUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               <span>{trend}</span>
-            </p>
+            </div>
           )}
         </div>
-        <div className={`${colors.icon} rounded-2xl p-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
+
+        {/* Title */}
+        <p className="text-sm font-medium text-slate-600 mb-2">{title}</p>
+
+        {/* Value */}
+        <p className={`text-3xl sm:text-4xl font-bold ${colors.text}`}>
+          {value}
+        </p>
+
+        {/* Description */}
+        {description && (
+          <p className="text-sm text-slate-500 mt-3">{description}</p>
+        )}
       </div>
     </div>
   );

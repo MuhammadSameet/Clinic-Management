@@ -151,13 +151,19 @@ export const checkAuthState = () => async (dispatch) => {
           if (userDoc.exists()) {
             const userData = { id: userDoc.id, ...userDoc.data() };
             dispatch({ type: 'AUTH_SUCCESS', payload: userData });
+            dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: userData, isAuthenticated: true } });
+            dispatch({ type: 'AUTH_CHECKED' });
             resolve(userData);
           } else {
             dispatch({ type: 'AUTH_LOGOUT' });
+            dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: null, isAuthenticated: false } });
+            dispatch({ type: 'AUTH_CHECKED' });
             resolve(null);
           }
         } else {
           dispatch({ type: 'AUTH_LOGOUT' });
+          dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: null, isAuthenticated: false } });
+          dispatch({ type: 'AUTH_CHECKED' });
           resolve(null);
         }
       });

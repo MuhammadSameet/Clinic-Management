@@ -80,34 +80,34 @@ export default function PatientDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#023E8A] rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, {currentUser?.name || 'Patient'}! 👋</h1>
-        <p className="text-white/80">Manage your health records and appointments.</p>
+      <div className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome back, {currentUser?.name || 'Patient'}! 👋</h1>
+        <p className="text-white/90 text-sm sm:text-base">Manage your health records and appointments.</p>
       </div>
 
       {/* Patient Info Card */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-100">
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 bg-[#0077B6]/10 rounded-full flex items-center justify-center">
-            <User className="w-10 h-10 text-[#0077B6]" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
+            <User className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{currentUser?.name}</h2>
-            <p className="text-gray-500">{currentUser?.email}</p>
-            <p className="text-sm text-gray-400 mt-1">Patient Account</p>
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">{currentUser?.name}</h2>
+            <p className="text-slate-500 text-sm truncate">{currentUser?.email}</p>
+            <p className="text-xs text-slate-400 mt-1">Patient Account</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
         <StatCard
           title="Upcoming Appointments"
           value={stats.upcoming}
           icon={Calendar}
-          color="blue"
+          color="violet"
         />
         <StatCard
           title="Total Appointments"
@@ -119,7 +119,7 @@ export default function PatientDashboard() {
           title="Prescriptions"
           value={stats.prescriptions}
           icon={FileText}
-          color="green"
+          color="emerald"
         />
       </div>
     </div>

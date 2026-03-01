@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { Calendar, Clock, FileText, Stethoscope } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 interface RootState {
   authStates: {
@@ -86,115 +87,76 @@ export default function PatientHistoryPage() {
     }
   };
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (loading) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4 sm:space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Medical History</h1>
-        <p className="text-gray-500">Your complete medical timeline</p>
+        <h1 className="text-lg sm:text-xl font-semibold text-slate-900">Medical History</h1>
+        <p className="text-slate-500 text-sm mt-0.5">Your complete medical timeline</p>
       </div>
 
-      {/* Timeline */}
       {timeline.length > 0 ? (
         <div className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          <div className="absolute left-6 sm:left-7 top-0 bottom-0 w-0.5 bg-slate-200" />
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {timeline.map((item) => (
-              <div key={item.id} className="relative pl-20">
-                {/* Timeline Dot */}
-                <div className={`absolute left-6 w-5 h-5 rounded-full border-4 border-white ${
-                  item.type === 'appointment' ? 'bg-blue-500' : 'bg-green-500'
-                }`}></div>
-
-                {/* Content Card */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  {/* Date Badge */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">{item.date}</span>
+              <div key={item.id} className="relative pl-14 sm:pl-16">
+                <div className={`absolute left-4 w-4 h-4 rounded-full border-2 border-white shadow-sm ${item.type === 'appointment' ? 'bg-primary' : 'bg-green-500'}`} />
+                <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs text-slate-500">{item.date}</span>
                     {item.type === 'appointment' && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium
-                        ${item.data.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
-                        ${item.data.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                        ${item.data.status === 'confirmed' ? 'bg-blue-100 text-blue-800' : ''}
-                        ${item.data.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
-                      `}>
-                        {item.data.status}
-                      </span>
+                      <StatusBadge status={item.data.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'} />
                     )}
                   </div>
 
                   {item.type === 'appointment' && (
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <Stethoscope className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">Appointment with Dr. {item.data.doctorName}</h3>
-                          <p className="text-sm text-gray-500 mt-1">{item.data.reason}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {item.data.time}
-                            </span>
-                          </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
+                        <Stethoscope className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 text-sm">Appointment with Dr. {item.data.doctorName}</h3>
+                        <p className="text-slate-500 text-xs mt-0.5">{item.data.reason}</p>
+                        <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-400">
+                          <Clock className="w-3 h-3" /> {item.data.time}
                         </div>
                       </div>
                     </div>
                   )}
 
                   {item.type === 'prescription' && (
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">Prescription from Dr. {item.data.doctorName}</h3>
-                          
-                          <div className="mt-3 p-3 bg-gray-50 rounded-xl">
-                            <p className="text-sm font-medium text-gray-700">Diagnosis: {item.data.diagnosis}</p>
-                            {item.data.riskLevel && (
-                              <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(item.data.riskLevel)}`}>
-                                Risk Level: {item.data.riskLevel}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="mt-3">
-                            <p className="text-sm font-medium text-gray-700 mb-2">Medicines:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(item.data.medicines || []).map((med: any, idx: number) => (
-                                <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-800 rounded-full text-sm">
-                                  {med.name} - {med.dosage}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          {item.data.instructions && (
-                            <div className="mt-3 p-3 bg-yellow-50 rounded-xl">
-                              <p className="text-sm font-medium text-gray-700">Instructions:</p>
-                              <p className="text-sm text-gray-600">{item.data.instructions}</p>
-                            </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-slate-900 text-sm">Prescription from Dr. {item.data.doctorName}</h3>
+                        <div className="mt-2 p-2.5 bg-slate-50 rounded-lg">
+                          <p className="text-xs font-medium text-slate-700">Diagnosis: {item.data.diagnosis}</p>
+                          {item.data.riskLevel && (
+                            <StatusBadge status={item.data.riskLevel === 'high' ? 'high' : item.data.riskLevel === 'medium' ? 'medium' : 'low'} className="mt-1.5" />
                           )}
                         </div>
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-slate-700 mb-1">Medicines</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {(item.data.medicines || []).map((med: any, idx: number) => (
+                              <span key={idx} className="px-2 py-0.5 bg-primary-50 text-primary-dark rounded-full text-xs">{med.name} – {med.dosage}</span>
+                            ))}
+                          </div>
+                        </div>
+                        {item.data.instructions && (
+                          <div className="mt-2 p-2.5 bg-amber-50 rounded-lg">
+                            <p className="text-xs font-medium text-slate-700">Instructions</p>
+                            <p className="text-xs text-slate-600 mt-0.5">{item.data.instructions}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

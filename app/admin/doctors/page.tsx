@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { Plus, Search, Edit, Trash2, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
@@ -9,7 +8,6 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
 
 export default function DoctorsPage() {
-  const dispatch = useDispatch();
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,21 +41,17 @@ export default function DoctorsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       const { createUserWithEmailAndPassword } = await import('firebase/auth');
       const { auth, db } = await import('@/lib/firebase');
       const { collection, addDoc, doc, updateDoc, deleteDoc } = await import('firebase/firestore');
-      
       if (editingDoctor) {
-        // Update doctor
         await updateDoc(doc(db, 'users', editingDoctor.id), {
           name: formData.name,
           specialty: formData.specialty
         });
         toast.success('Doctor updated successfully');
       } else {
-        // Create new doctor
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         await addDoc(collection(db, 'users'), {
           uid: userCredential.user.uid,
@@ -69,7 +63,6 @@ export default function DoctorsPage() {
         });
         toast.success('Doctor added successfully');
       }
-      
       setIsModalOpen(false);
       setEditingDoctor(null);
       setFormData({ name: '', email: '', password: '', specialty: '' });
@@ -81,19 +74,12 @@ export default function DoctorsPage() {
 
   const handleDelete = async (doctorId: string) => {
     if (!confirm('Are you sure you want to delete this doctor?')) return;
-    
     try {
       const { deleteDoc, doc } = await import('firebase/firestore');
       const { deleteUser } = await import('firebase/auth');
       const { db, auth } = await import('@/lib/firebase');
-      
       await deleteDoc(doc(db, 'users', doctorId));
-      try {
-        await deleteUser(auth.currentUser!);
-      } catch (e) {
-        // User might already be deleted from auth
-      }
-      
+      try { await deleteUser(auth.currentUser!); } catch (e) {}
       toast.success('Doctor deleted successfully');
       fetchDoctors();
     } catch (error: any) {
@@ -117,17 +103,14 @@ export default function DoctorsPage() {
     doc.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Doctors Management</h1>
-          <p className="text-gray-500">Manage doctor accounts and specialties</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-slate-900">Doctors Management</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Manage doctor accounts and specialties</p>
         </div>
         <button
           onClick={() => {
@@ -135,67 +118,59 @@ export default function DoctorsPage() {
             setFormData({ name: '', email: '', password: '', specialty: '' });
             setIsModalOpen(true);
           }}
-          className="btn btn-primary flex items-center gap-2"
+          className="btn btn-primary flex items-center gap-2 text-sm py-2.5 px-4"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Add Doctor
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         <input
           type="text"
-          placeholder="Search doctors..."
+          placeholder="Search doctors by name or specialty..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="input pl-10"
+          className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-500 text-sm focus:outline-none focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-500/10 transition-all"
         />
       </div>
 
-      {/* Table */}
       {filteredDoctors.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div className="table-wrap bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Name</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Email</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Specialty</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Actions</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600">Name</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600 hidden md:table-cell">Email</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600">Specialty</th>
+                <th className="text-right py-3 px-3 sm:px-4 font-semibold text-slate-600">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredDoctors.map((doctor) => (
-                <tr key={doctor.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#0077B6]/10 rounded-full flex items-center justify-center">
-                        <UserCheck className="w-5 h-5 text-[#0077B6]" />
+                <tr key={doctor.id} className="border-t border-slate-100 hover:bg-slate-50/80">
+                  <td className="py-3 px-3 sm:px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
+                        <UserCheck className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="font-medium text-gray-900">Dr. {doctor.name}</span>
+                      <span className="font-medium text-slate-900">Dr. {doctor.name}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-gray-600">{doctor.email}</td>
-                  <td className="py-4 px-6">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  <td className="py-3 px-3 sm:px-4 text-slate-600 hidden md:table-cell">{doctor.email}</td>
+                  <td className="py-3 px-3 sm:px-4">
+                    <span className="px-2 py-0.5 bg-primary-50 text-primary-dark rounded-full text-xs font-medium">
                       {doctor.specialty || 'General'}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openEditModal(doctor)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <Edit className="w-4 h-4 text-gray-600" />
+                  <td className="py-3 px-3 sm:px-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button type="button" onClick={() => openEditModal(doctor)} className="p-2 hover:bg-primary-50 rounded-lg text-primary" aria-label="Edit">
+                        <Edit className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(doctor.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                      <button type="button" onClick={() => handleDelete(doctor.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-600" aria-label="Delete">
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -209,67 +184,34 @@ export default function DoctorsPage() {
           icon={UserCheck}
           title="No doctors found"
           description="Add your first doctor to get started"
-          action={{
-            label: 'Add Doctor',
-            onClick: () => setIsModalOpen(true)
-          }}
+          action={{ label: 'Add Doctor', onClick: () => setIsModalOpen(true) }}
         />
       )}
 
-      {/* Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingDoctor(null);
-        }}
+        onClose={() => { setIsModalOpen(false); setEditingDoctor(null); }}
         title={editingDoctor ? 'Edit Doctor' : 'Add New Doctor'}
         size="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="input-label">Full Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="input"
-              placeholder="Enter doctor's name"
-              required
-            />
+            <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input" placeholder="Doctor name" required />
           </div>
           <div>
             <label className="input-label">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="input"
-              placeholder="Enter doctor's email"
-              required
-              disabled={!!editingDoctor}
-            />
+            <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input" placeholder="doctor@example.com" required disabled={!!editingDoctor} />
           </div>
           {!editingDoctor && (
             <div>
               <label className="input-label">Password</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="input"
-                placeholder="Enter password"
-                required={!editingDoctor}
-              />
+              <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="input" placeholder="••••••••" required />
             </div>
           )}
           <div>
             <label className="input-label">Specialty</label>
-            <select
-              value={formData.specialty}
-              onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-              className="input"
-            >
+            <select value={formData.specialty} onChange={(e) => setFormData({ ...formData, specialty: e.target.value })} className="input">
               <option value="">Select specialty</option>
               <option value="General">General Medicine</option>
               <option value="Cardiology">Cardiology</option>
@@ -283,17 +225,9 @@ export default function DoctorsPage() {
               <option value="Dental">Dental</option>
             </select>
           </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editingDoctor ? 'Update' : 'Add'} Doctor
-            </button>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary text-sm py-2 px-4">Cancel</button>
+            <button type="submit" className="btn btn-primary text-sm py-2 px-4">{editingDoctor ? 'Update' : 'Add'} Doctor</button>
           </div>
         </form>
       </Modal>

@@ -73,21 +73,21 @@ export default function ReceptionistDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#023E8A] rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, {currentUser?.name || 'Receptionist'}! 👋</h1>
-        <p className="text-white/80">Here&apos;s your clinic overview for today.</p>
+      <div className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome back, {currentUser?.name || 'Receptionist'}! 👋</h1>
+        <p className="text-white/90 text-sm sm:text-base">Here&apos;s your clinic overview for today.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Link href="/receptionist/patients">
           <StatCard
             title="Total Patients"
             value={stats.patients}
             icon={Users}
-            color="blue"
+            color="violet"
           />
         </Link>
         <Link href="/receptionist/appointments">
@@ -95,7 +95,7 @@ export default function ReceptionistDashboard() {
             title="Total Appointments"
             value={stats.appointments}
             icon={Calendar}
-            color="green"
+            color="emerald"
           />
         </Link>
         <Link href="/receptionist/appointments">
@@ -111,7 +111,7 @@ export default function ReceptionistDashboard() {
             title="Pending Appointments"
             value={stats.pendingAppointments}
             icon={UserPlus}
-            color="purple"
+            color="indigo"
           />
         </Link>
       </div>

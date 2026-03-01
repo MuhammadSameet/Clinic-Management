@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Calendar, Clock, User } from 'lucide-react';
+import { Calendar, Clock, User, FileText } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 interface RootState {
   authStates: {
@@ -57,46 +58,31 @@ export default function PatientAppointmentsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4 sm:space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Appointments</h1>
-        <p className="text-gray-500">View your appointment history</p>
+        <h1 className="text-lg sm:text-xl font-semibold text-slate-900">My Appointments</h1>
+        <p className="text-slate-500 text-sm mt-0.5">View your appointment history</p>
       </div>
 
-      {/* Appointments List */}
       {appointments.length > 0 ? (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {appointments.map((apt) => (
-            <div key={apt.id} className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-[#0077B6]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <User className="w-7 h-7 text-[#0077B6]" />
+            <div key={apt.id} className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center shrink-0">
+                    <User className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">Dr. {apt.doctorName}</h3>
-                    <p className="text-gray-500 text-sm mt-1">{apt.reason}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {apt.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {apt.time}
-                      </span>
+                    <h3 className="font-semibold text-slate-900">Dr. {apt.doctorName}</h3>
+                    <p className="text-slate-500 text-sm mt-0.5">{apt.reason}</p>
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                      <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{apt.date}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{apt.time}</span>
                     </div>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium self-start
-                  ${apt.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                  ${apt.status === 'confirmed' ? 'bg-blue-100 text-blue-800' : ''}
-                  ${apt.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
-                  ${apt.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
-                `}>
-                  {apt.status}
-                </span>
+                <StatusBadge status={apt.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'} />
               </div>
             </div>
           ))}

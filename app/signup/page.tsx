@@ -1,19 +1,27 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Stethoscope, User, Phone, Calendar, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Stethoscope, User, Phone, ChevronDown } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+
+interface RootState {
+  authStates: {
+    currentUser: any;
+    isAuthenticated: boolean;
+  };
+}
 
 export default function SignupPage() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { currentUser, isAuthenticated } = useSelector((state: RootState) => state.authStates);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'doctor' | 'receptionist' | 'patient'>('patient');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'doctor' | 'patient' | 'receptionist'>('patient');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,9 +30,22 @@ export default function SignupPage() {
     gender: 'male',
     specialty: '',
     password: '',
-    confirmPassword: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      const redirectPaths: Record<string, string> = {
+        admin: '/admin/dashboard',
+        doctor: '/doctor/dashboard',
+        receptionist: '/receptionist/dashboard',
+        patient: '/patient/dashboard',
+      };
+      const path = redirectPaths[currentUser.role] || '/';
+      router.replace(path);
+    }
+  }, [isAuthenticated, currentUser, router]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -41,7 +62,7 @@ export default function SignupPage() {
     }
     if (selectedRole === 'patient') {
       if (!formData.age) newErrors.age = 'Age is required';
-      else if (parseInt(formData.age) < 1 || parseInt(formData.age) > 150) newErrors.age = 'Please enter a valid age';
+      else if (parseInt(formData.age) < 1 || parseInt(formData.age) > 150) newErrors.age = 'Valid age required';
     }
     if (selectedRole === 'doctor' && !formData.specialty.trim()) {
       newErrors.specialty = 'Specialty is required';
@@ -49,10 +70,7 @@ export default function SignupPage() {
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.password = 'Min 6 characters';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -100,22 +118,20 @@ export default function SignupPage() {
       }
       const fullUserData = { id: userCredential.user.uid, ...userData };
       dispatch({ type: 'AUTH_SUCCESS', payload: fullUserData });
-      dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: fullUserData, isAuthenticated: true } });
-      toast.success('Account created successfully!', { id: toastId });
+      dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: fullUserData, isAuthenticated: true, authChecked: true } });
+      toast.success('Account created!', { id: toastId });
       const redirectPaths: Record<string, string> = {
         admin: '/admin/dashboard',
         doctor: '/doctor/dashboard',
         receptionist: '/receptionist/dashboard',
         patient: '/patient/dashboard',
       };
-      setTimeout(() => {
-        router.push(redirectPaths[selectedRole]);
-      }, 500);
+      setTimeout(() => router.replace(redirectPaths[selectedRole]), 100);
     } catch (err: any) {
       let errorMessage = 'Failed to create account';
-      if (err.code === 'auth/email-already-in-use') errorMessage = 'Email already registered. Please login instead.';
-      else if (err.code === 'auth/weak-password') errorMessage = 'Password must be at least 6 characters';
-      else if (err.code === 'auth/invalid-email') errorMessage = 'Invalid email address';
+      if (err.code === 'auth/email-already-in-use') errorMessage = 'Email already registered';
+      else if (err.code === 'auth/weak-password') errorMessage = 'Password too weak';
+      else if (err.code === 'auth/invalid-email') errorMessage = 'Invalid email';
       else if (err.message) errorMessage = err.message;
       toast.error(errorMessage);
       dispatch({ type: 'AUTH_ERROR', payload: errorMessage });
@@ -131,180 +147,208 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 flex items-center justify-center p-3 sm:p-6">
       <Toaster position="top-center" reverseOrder={false} toastOptions={{
         duration: 4000,
-        style: { background: '#1e293b', color: '#fff', borderRadius: '12px', fontSize: '14px', padding: '16px 20px', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' },
-        success: { style: { background: '#16a34a' }, iconTheme: { primary: '#16a34a', secondary: '#fff' } },
-        error: { style: { background: '#dc2626' }, iconTheme: { primary: '#dc2626', secondary: '#fff' } },
-        loading: { style: { background: '#059669' } },
+        style: { borderRadius: '10px', fontSize: '14px' },
+        success: { style: { background: '#10b981' } },
+        error: { style: { background: '#ef4444' } },
+        loading: { style: { background: '#7c3aed' } },
       }} />
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        </div>
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-          backgroundSize: '50px 50px'
-        }}></div>
-        <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-2xl border border-white/30">
-              <Stethoscope className="w-10 h-10" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight">MediCare</h1>
-              <p className="text-lg text-emerald-100">Your Health, Our Priority</p>
-            </div>
+
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Stethoscope className="w-6 h-6 text-white" />
           </div>
-          <div className="space-y-5 max-w-md w-full mt-12">
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
-              <span className="text-4xl">🏥</span>
-              <div>
-                <h3 className="font-semibold mb-1">Complete Medical Records</h3>
-                <p className="text-emerald-100 text-sm">Access your full medical history anytime</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
-              <span className="text-4xl">⚡</span>
-              <div>
-                <h3 className="font-semibold mb-1">Quick Appointments</h3>
-                <p className="text-emerald-100 text-sm">Book visits with doctors in seconds</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm p-5 rounded-2xl border border-white/20">
-              <span className="text-4xl">📱</span>
-              <div>
-                <h3 className="font-semibold mb-1">Digital Prescriptions</h3>
-                <p className="text-emerald-100 text-sm">Download and share prescriptions easily</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-12 flex items-center gap-6 text-emerald-100 text-sm">
-            <span>🔒 Secure & Private</span>
-            <span>✓ Trusted by 1000+</span>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">MediCare</h1>
+            <p className="text-slate-500 text-xs">Join our healthcare platform</p>
           </div>
         </div>
-      </div>
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
-        <div className="w-full max-w-lg">
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-6">
-            <div className="w-14 h-14 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl flex items-center justify-center shadow-lg">
-              <Stethoscope className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">MediCare</h1>
-              <p className="text-sm text-gray-500">Create Account</p>
+
+        {/* Form Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-7 space-y-4">
+          <div className="text-center mb-2">
+            <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
+            <p className="text-slate-500 text-xs mt-1">We'll protect your health data</p>
+          </div>
+
+          {/* Role Selection - Dropdown */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-900 mb-1">Select Role</label>
+            <div className="relative">
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value as 'admin' | 'doctor' | 'patient' | 'receptionist')}
+                className="w-full pl-4 pr-10 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 text-xs transition-all focus:bg-white focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/10 appearance-none cursor-pointer"
+              >               
+                <option value="patient">Patient</option>
+                
+                <option value="doctor">Doctor</option>
+                <option value="receptionist">Receptionist</option>
+                <option value="admin">Admin</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
           </div>
-          <Link href="/login" className="inline-flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition-colors mb-6">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Login</span>
-          </Link>
-          <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
-              <p className="text-gray-500">Join MediCare for better healthcare management</p>
+
+          <form onSubmit={handleSignup} className="space-y-3">
+            {/* Full Name */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-900 mb-1">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Your full name"
+                  className={`w-full pl-11 pr-4 py-2 rounded-lg border bg-slate-50 text-slate-900 placeholder-slate-400 text-xs transition-all ${
+                    errors.name ? 'border-rose-500 focus:bg-rose-50' : 'border-slate-200 focus:bg-white focus:border-violet-500'
+                  } focus:outline-none focus:ring-2 focus:ring-violet-500/10`}
+                />
+              </div>
+              {errors.name && <p className="text-xs text-rose-600 mt-1">{errors.name}</p>}
             </div>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Select Your Role</label>
-              <div className="grid grid-cols-2 gap-3">
-                {(['patient', 'doctor', 'receptionist', 'admin'] as const).map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => setSelectedRole(role)}
-                    className={`p-3 rounded-lg border-2 font-medium transition-all capitalize ${selectedRole === role ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-white text-gray-700 hover:border-emerald-300'}`}
-                  >
-                    {role}
-                  </button>
-                ))}
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-900 mb-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="you@example.com"
+                  className={`w-full pl-11 pr-4 py-2 rounded-lg border bg-slate-50 text-slate-900 placeholder-slate-400 text-xs transition-all ${
+                    errors.email ? 'border-rose-500 focus:bg-rose-50' : 'border-slate-200 focus:bg-white focus:border-violet-500'
+                  } focus:outline-none focus:ring-2 focus:ring-violet-500/10`}
+                />
               </div>
+              {errors.email && <p className="text-xs text-rose-600 mt-1">{errors.email}</p>}
             </div>
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                <div className="relative">
-                  <User className="absolute inset-y-4 left-4 h-5 w-5 text-gray-400 pointer-events-none" />
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 ${errors.name ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="Enter your full name" />
-                </div>
-                {errors.name && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.name}</p>}
+
+            {/* Phone */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-900 mb-1">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="03001234567"
+                  className={`w-full pl-11 pr-4 py-2 rounded-lg border bg-slate-50 text-slate-900 placeholder-slate-400 text-xs transition-all ${
+                    errors.phone ? 'border-rose-500 focus:bg-rose-50' : 'border-slate-200 focus:bg-white focus:border-violet-500'
+                  } focus:outline-none focus:ring-2 focus:ring-violet-500/10`}
+                />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute inset-y-4 left-4 h-5 w-5 text-gray-400 pointer-events-none" />
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 ${errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="Enter your email" />
-                </div>
-                {errors.email && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.email}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
-                <div className="relative">
-                  <Phone className="absolute inset-y-4 left-4 h-5 w-5 text-gray-400 pointer-events-none" />
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 ${errors.phone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="03001234567" />
-                </div>
-                {errors.phone && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.phone}</p>}
-              </div>
-              {selectedRole === 'patient' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
-                    <input type="number" name="age" value={formData.age} onChange={handleInputChange} className={`w-full px-4 py-3.5 bg-gray-50 border-2 ${errors.age ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="Age" />
-                    {errors.age && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.age}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
-                    <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-              {selectedRole === 'doctor' && (
+              {errors.phone && <p className="text-xs text-rose-600 mt-1">{errors.phone}</p>}
+            </div>
+
+            {selectedRole === 'patient' && (
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Specialty</label>
-                  <input type="text" name="specialty" value={formData.specialty} onChange={handleInputChange} className={`w-full px-4 py-3.5 bg-gray-50 border-2 ${errors.specialty ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="e.g., Cardiology, Pediatrics" />
-                  {errors.specialty && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.specialty}</p>}
+                  <label className="block text-xs font-semibold text-slate-900 mb-1">Age</label>
+                  <input
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    placeholder="25"
+                    className={`w-full px-3 py-2 rounded-lg border bg-slate-50 text-slate-900 placeholder-slate-400 text-xs transition-all ${
+                      errors.age ? 'border-rose-500 focus:bg-rose-50' : 'border-slate-200 focus:bg-white focus:border-violet-500'
+                    } focus:outline-none focus:ring-2 focus:ring-violet-500/10`}
+                  />
+                  {errors.age && <p className="text-xs text-rose-600 mt-1">{errors.age}</p>}
                 </div>
-              )}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                <div className="relative">
-                  <Lock className="absolute inset-y-4 left-4 h-5 w-5 text-gray-400 pointer-events-none" />
-                  <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleInputChange} className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 ${errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="Create a password" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-4 right-4 text-gray-400 hover:text-gray-600">
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-900 mb-1">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 text-xs transition-all focus:bg-white focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
-                {errors.password && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.password}</p>}
               </div>
+            )}
+
+            {selectedRole === 'doctor' && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
-                <div className="relative">
-                  <Lock className="absolute inset-y-4 left-4 h-5 w-5 text-gray-400 pointer-events-none" />
-                  <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 ${errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500'} rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10`} placeholder="Confirm your password" />
-                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-4 right-4 text-gray-400 hover:text-gray-600">
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && <p className="text-sm text-red-500 mt-1.5 ml-1">{errors.confirmPassword}</p>}
+                <label className="block text-xs font-semibold text-slate-900 mb-1">Specialty</label>
+                <input
+                  type="text"
+                  name="specialty"
+                  value={formData.specialty}
+                  onChange={handleInputChange}
+                  placeholder="Cardiology, Pediatrics, etc"
+                  className={`w-full px-4 py-2 rounded-lg border bg-slate-50 text-slate-900 placeholder-slate-400 text-xs transition-all ${
+                    errors.specialty ? 'border-rose-500 focus:bg-rose-50' : 'border-slate-200 focus:bg-white focus:border-violet-500'
+                  } focus:outline-none focus:ring-2 focus:ring-violet-500/10`}
+                />
+                {errors.specialty && <p className="text-xs text-rose-600 mt-1">{errors.specialty}</p>}
               </div>
-              <button type="submit" disabled={isLoading} className="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50">
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </form>
-            <div className="relative my-6">
-              <div className="w-full border-t border-gray-200"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-sm text-gray-500">OR</div>
+            )}
+
+            {/* Password */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-900 mb-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  className={`w-full pl-11 pr-10 py-2 rounded-lg border bg-slate-50 text-slate-900 placeholder-slate-400 text-xs transition-all ${
+                    errors.password ? 'border-rose-500 focus:bg-rose-50' : 'border-slate-200 focus:bg-white focus:border-violet-500'
+                  } focus:outline-none focus:ring-2 focus:ring-violet-500/10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-xs text-rose-600 mt-1">{errors.password}</p>}
             </div>
-            <p className="text-center text-gray-600">Already have an account? <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">Sign In</Link></p>
-          </div>
-          <p className="text-center text-sm text-gray-500 mt-8">© 2024 MediCare. All rights reserved.</p>
+
+
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed text-xs"
+            >
+              {isLoading ? 'Creating...' : 'Create Account'}
+            </button>
+          </form>
+
+          {/* Login Link */}
+          <p className="text-center text-xs text-slate-600 mt-4">
+            Already have an account?{' '}
+            <Link href="/login" className="font-semibold text-violet-600 hover:text-violet-700">
+              Sign In
+            </Link>
+          </p>
         </div>
+
+        <p className="text-center text-xs text-slate-500 mt-4">© 2024 MediCare. All rights reserved.</p>
       </div>
     </div>
   );

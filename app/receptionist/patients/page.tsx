@@ -2,16 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Plus, Search, Edit, Trash2, Heart, Calendar } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 
 interface RootState {
-  authStates: {
-    currentUser: any;
-  };
+  authStates: { currentUser: any };
 }
 
 export default function ReceptionistPatientsPage() {
@@ -22,17 +21,10 @@ export default function ReceptionistPatientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    age: '',
-    gender: 'male',
-    contact: '',
-    address: '',
-    bloodGroup: ''
+    name: '', age: '', gender: 'male', contact: '', address: '', bloodGroup: ''
   });
 
-  useEffect(() => {
-    fetchPatients();
-  }, []);
+  useEffect(() => { fetchPatients(); }, []);
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -51,22 +43,14 @@ export default function ReceptionistPatientsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       const { collection, addDoc, doc, updateDoc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');
-      
       const patientData = {
-        name: formData.name,
-        age: parseInt(formData.age),
-        gender: formData.gender,
-        contact: formData.contact,
-        address: formData.address,
-        bloodGroup: formData.bloodGroup,
-        createdBy: currentUser?.id || currentUser?.uid,
-        createdAt: new Date().toISOString()
+        name: formData.name, age: parseInt(formData.age), gender: formData.gender,
+        contact: formData.contact, address: formData.address, bloodGroup: formData.bloodGroup,
+        createdBy: currentUser?.id || currentUser?.uid, createdAt: new Date().toISOString()
       };
-      
       if (editingPatient) {
         await updateDoc(doc(db, 'patients', editingPatient.id), patientData);
         toast.success('Patient updated successfully');
@@ -74,7 +58,6 @@ export default function ReceptionistPatientsPage() {
         await addDoc(collection(db, 'patients'), patientData);
         toast.success('Patient added successfully');
       }
-      
       setIsModalOpen(false);
       setEditingPatient(null);
       setFormData({ name: '', age: '', gender: 'male', contact: '', address: '', bloodGroup: '' });
@@ -86,7 +69,6 @@ export default function ReceptionistPatientsPage() {
 
   const handleDelete = async (patientId: string) => {
     if (!confirm('Are you sure you want to delete this patient?')) return;
-    
     try {
       const { deleteDoc, doc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');
@@ -101,112 +83,72 @@ export default function ReceptionistPatientsPage() {
   const openEditModal = (patient: any) => {
     setEditingPatient(patient);
     setFormData({
-      name: patient.name,
-      age: patient.age.toString(),
-      gender: patient.gender,
-      contact: patient.contact,
-      address: patient.address,
-      bloodGroup: patient.bloodGroup
+      name: patient.name, age: patient.age?.toString() ?? '', gender: patient.gender,
+      contact: patient.contact ?? patient.phone ?? '', address: patient.address ?? '', bloodGroup: patient.bloodGroup ?? ''
     });
     setIsModalOpen(true);
   };
 
   const filteredPatients = patients.filter(p =>
     p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.contact?.includes(searchTerm)
+    (p.contact || p.phone || '')?.toString().includes(searchTerm)
   );
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Patients Management</h1>
-          <p className="text-gray-500">Manage patient records</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-slate-900">Patients Management</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Manage patient records</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingPatient(null);
-            setFormData({ name: '', age: '', gender: 'male', contact: '', address: '', bloodGroup: '' });
-            setIsModalOpen(true);
-          }}
-          className="btn btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Patient
+        <button onClick={() => { setEditingPatient(null); setFormData({ name: '', age: '', gender: 'male', contact: '', address: '', bloodGroup: '' }); setIsModalOpen(true); }} className="btn btn-primary flex items-center gap-2 text-sm py-2.5 px-4">
+          <Plus className="w-4 h-4" /> Add Patient
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search patients by name or contact..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="input pl-10"
-        />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input type="text" placeholder="Search by name or contact..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="input-base pl-9 py-2.5 text-sm" />
       </div>
 
-      {/* Table */}
       {filteredPatients.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div className="table-wrap bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Name</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Age</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Gender</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Contact</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Blood Group</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Actions</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600">Name</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600">Age</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600 hidden sm:table-cell">Gender</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600 hidden md:table-cell">Contact</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600 hidden lg:table-cell">Blood</th>
+                <th className="text-right py-3 px-3 sm:px-4 font-semibold text-slate-600">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredPatients.map((patient) => (
-                <tr key={patient.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                        <Heart className="w-5 h-5 text-red-500" />
+                <tr key={patient.id} className="border-t border-slate-100 hover:bg-slate-50/80">
+                  <td className="py-3 px-3 sm:px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
+                        <Heart className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="font-medium text-gray-900">{patient.name}</span>
+                      <span className="font-medium text-slate-900 truncate max-w-[120px] sm:max-w-none">{patient.name}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-gray-600">{patient.age} years</td>
-                  <td className="py-4 px-6">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium
-                      ${patient.gender === 'male' ? 'bg-blue-100 text-blue-800' : ''}
-                      ${patient.gender === 'female' ? 'bg-pink-100 text-pink-800' : ''}
-                    `}>
-                      {patient.gender}
-                    </span>
+                  <td className="py-3 px-3 sm:px-4 text-slate-600">{patient.age} yrs</td>
+                  <td className="py-3 px-3 sm:px-4 hidden sm:table-cell">
+                    <StatusBadge status={patient.gender === 'female' ? 'female' : patient.gender === 'male' ? 'male' : 'other'} />
                   </td>
-                  <td className="py-4 px-6 text-gray-600">{patient.contact}</td>
-                  <td className="py-4 px-6">
-                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                      {patient.bloodGroup || 'N/A'}
-                    </span>
+                  <td className="py-3 px-3 sm:px-4 text-slate-600 hidden md:table-cell">{patient.contact || patient.phone}</td>
+                  <td className="py-3 px-3 sm:px-4 hidden lg:table-cell">
+                    <span className="px-2 py-0.5 bg-red-50 text-red-800 rounded-full text-xs font-medium">{patient.bloodGroup || 'N/A'}</span>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openEditModal(patient)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <Edit className="w-4 h-4 text-gray-600" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(patient.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
+                  <td className="py-3 px-3 sm:px-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button type="button" onClick={() => openEditModal(patient)} className="p-2 hover:bg-primary-50 rounded-lg text-primary" aria-label="Edit"><Edit className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleDelete(patient.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-600" aria-label="Delete"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -215,61 +157,25 @@ export default function ReceptionistPatientsPage() {
           </table>
         </div>
       ) : (
-        <EmptyState
-          icon={Heart}
-          title="No patients found"
-          description="Add your first patient to get started"
-          action={{
-            label: 'Add Patient',
-            onClick: () => setIsModalOpen(true)
-          }}
-        />
+        <EmptyState icon={Heart} title="No patients found" description="Add your first patient to get started" action={{ label: 'Add Patient', onClick: () => setIsModalOpen(true) }} />
       )}
 
-      {/* Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingPatient(null);
-        }}
-        title={editingPatient ? 'Edit Patient' : 'Add New Patient'}
-        size="md"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingPatient(null); }} title={editingPatient ? 'Edit Patient' : 'Add New Patient'} size="md">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="input-label">Name *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input"
-                placeholder="Patient name"
-                required
-              />
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input" placeholder="Name" required />
             </div>
             <div>
               <label className="input-label">Age *</label>
-              <input
-                type="number"
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                className="input"
-                placeholder="Age"
-                required
-              />
+              <input type="number" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="input" placeholder="Age" required />
             </div>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="input-label">Gender *</label>
-              <select
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="input"
-              >
+              <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className="input">
                 <option value="male">Male</option>
                 <option value="female">Female</option>
                 <option value="other">Other</option>
@@ -277,60 +183,30 @@ export default function ReceptionistPatientsPage() {
             </div>
             <div>
               <label className="input-label">Contact *</label>
-              <input
-                type="tel"
-                value={formData.contact}
-                onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                className="input"
-                placeholder="11-digit contact"
-                required
-              />
+              <input type="tel" value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} className="input" placeholder="11-digit" required />
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="input-label">Blood Group</label>
-              <select
-                value={formData.bloodGroup}
-                onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
-                className="input"
-              >
-                <option value="">Select</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-              </select>
-            </div>
+          <div>
+            <label className="input-label">Blood Group</label>
+            <select value={formData.bloodGroup} onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })} className="input">
+              <option value="">Select</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
           </div>
-
           <div>
             <label className="input-label">Address</label>
-            <textarea
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="input"
-              rows={2}
-              placeholder="Address"
-            />
+            <textarea value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="input" rows={2} placeholder="Address" />
           </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editingPatient ? 'Update' : 'Add'} Patient
-            </button>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary text-sm py-2 px-4">Cancel</button>
+            <button type="submit" className="btn btn-primary text-sm py-2 px-4">{editingPatient ? 'Update' : 'Add'} Patient</button>
           </div>
         </form>
       </Modal>

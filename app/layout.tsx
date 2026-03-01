@@ -23,6 +23,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
         toastOptions={{
           duration: 3000,
           style: {
+            
             background: '#1e293b',
             color: '#fff',
             borderRadius: '8px',
@@ -68,8 +69,11 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
         <title>MediCare - Clinic Management System</title>
         <meta name="description" content="MediCare - Modern Healthcare Management System" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-gray-50 text-gray-900">
+      <body className="min-h-screen antialiased font-sans">
         <Provider store={store}>
           <AppContent>{children}</AppContent>
         </Provider>

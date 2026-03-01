@@ -6,20 +6,20 @@ export default function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | '
   const sizeClasses = {
     sm: 'w-5 h-5',
     md: 'w-8 h-8',
-    lg: 'w-12 h-12'
+    lg: 'w-10 h-10'
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className={`${sizeClasses[size]} animate-spin`}>
-        <svg className="w-full h-full text-[#0077B6]" viewBox="0 0 24 24" fill="none">
+    <div className="flex items-center justify-center min-h-[280px] sm:min-h-[320px]" aria-label="Loading">
+      <div className={`${sizeClasses[size]} animate-spin text-primary`}>
+        <svg className="w-full h-full" viewBox="0 0 24 24" fill="none">
           <circle
             className="opacity-25"
             cx="12"
             cy="12"
             r="10"
             stroke="currentColor"
-            strokeWidth="4"
+            strokeWidth="3"
           />
           <path
             className="opacity-75"

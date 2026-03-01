@@ -65,20 +65,20 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#023E8A] rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, Dr. {currentUser?.name || 'Doctor'}! 👋</h1>
-        <p className="text-white/80">Here&apos;s your schedule and patient overview.</p>
+      <div className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome back, Dr. {currentUser?.name || 'Doctor'}! 👋</h1>
+        <p className="text-white/90 text-sm sm:text-base">Here&apos;s your schedule and patient overview.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           title="Today&apos;s Appointments"
           value={todayAppointments.length}
           icon={Calendar}
-          color="blue"
+          color="violet"
         />
         <StatCard
           title="Pending Appointments"
@@ -90,30 +90,30 @@ export default function DoctorDashboard() {
           title="Total Patients"
           value={patients.length}
           icon={Users}
-          color="green"
+          color="emerald"
         />
         <StatCard
           title="Prescriptions Written"
           value={prescriptions.length}
           icon={FileText}
-          color="purple"
+          color="indigo"
         />
       </div>
 
       {/* Today's Schedule */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Today&apos;s Schedule</h2>
+      <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-slate-200">
+        <h2 className="text-lg font-bold text-slate-900 mb-4">Today&apos;s Schedule</h2>
         {todayAppointments.length > 0 ? (
           <div className="space-y-3">
             {todayAppointments.map((apt: any) => (
-              <div key={apt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#0077B6]/10 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-[#0077B6]" />
+              <div key={apt.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                    <Calendar className="w-6 h-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{apt.patientName}</p>
-                    <p className="text-sm text-gray-500">{apt.time} - {apt.reason}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900">{apt.patientName}</p>
+                    <p className="text-sm text-slate-500">{apt.time} - {apt.reason}</p>
                   </div>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium
@@ -127,7 +127,7 @@ export default function DoctorDashboard() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-10 text-slate-500 text-sm">
             No appointments scheduled for today
           </div>
         )}

@@ -13,15 +13,9 @@ export default function ReceptionistsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReceptionist, setEditingReceptionist] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
 
-  useEffect(() => {
-    fetchReceptionists();
-  }, []);
+  useEffect(() => { fetchReceptionists(); }, []);
 
   const fetchReceptionists = async () => {
     setLoading(true);
@@ -40,16 +34,12 @@ export default function ReceptionistsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       const { createUserWithEmailAndPassword } = await import('firebase/auth');
       const { auth, db } = await import('@/lib/firebase');
       const { collection, addDoc, doc, updateDoc } = await import('firebase/firestore');
-      
       if (editingReceptionist) {
-        await updateDoc(doc(db, 'users', editingReceptionist.id), {
-          name: formData.name
-        });
+        await updateDoc(doc(db, 'users', editingReceptionist.id), { name: formData.name });
         toast.success('Receptionist updated successfully');
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
@@ -62,7 +52,6 @@ export default function ReceptionistsPage() {
         });
         toast.success('Receptionist added successfully');
       }
-      
       setIsModalOpen(false);
       setEditingReceptionist(null);
       setFormData({ name: '', email: '', password: '' });
@@ -74,7 +63,6 @@ export default function ReceptionistsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this receptionist?')) return;
-    
     try {
       const { deleteDoc, doc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');
@@ -91,87 +79,66 @@ export default function ReceptionistsPage() {
     r.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Receptionists Management</h1>
-          <p className="text-gray-500">Manage receptionist accounts</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-slate-900">Receptionists Management</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Manage receptionist accounts</p>
         </div>
         <button
-          onClick={() => {
-            setEditingReceptionist(null);
-            setFormData({ name: '', email: '', password: '' });
-            setIsModalOpen(true);
-          }}
-          className="btn btn-primary flex items-center gap-2"
+          onClick={() => { setEditingReceptionist(null); setFormData({ name: '', email: '', password: '' }); setIsModalOpen(true); }}
+          className="btn btn-primary flex items-center gap-2 text-sm py-2.5 px-4"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Add Receptionist
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search receptionists..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="input pl-10"
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <input 
+          type="text" 
+          placeholder="Search receptionists by name or email..." 
+          value={searchTerm} 
+          onChange={(e) => setSearchTerm(e.target.value)} 
+          className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-500 text-sm focus:outline-none focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-500/10 transition-all" 
         />
       </div>
 
-      {/* Table */}
       {filteredReceptionists.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div className="table-wrap bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Name</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Email</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Joined Date</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Actions</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600">Name</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600 hidden md:table-cell">Email</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-semibold text-slate-600 hidden sm:table-cell">Joined</th>
+                <th className="text-right py-3 px-3 sm:px-4 font-semibold text-slate-600">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredReceptionists.map((receptionist) => (
-                <tr key={receptionist.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <Users className="w-5 h-5 text-green-600" />
+              {filteredReceptionists.map((r) => (
+                <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/80">
+                  <td className="py-3 px-3 sm:px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
+                        <Users className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="font-medium text-gray-900">{receptionist.name}</span>
+                      <span className="font-medium text-slate-900">{r.name}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-gray-600">{receptionist.email}</td>
-                  <td className="py-4 px-6 text-gray-600">
-                    {receptionist.createdAt ? new Date(receptionist.createdAt).toLocaleDateString() : 'N/A'}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingReceptionist(receptionist);
-                          setFormData({ name: receptionist.name, email: receptionist.email, password: '' });
-                          setIsModalOpen(true);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <Edit className="w-4 h-4 text-gray-600" />
+                  <td className="py-3 px-3 sm:px-4 text-slate-600 hidden md:table-cell">{r.email}</td>
+                  <td className="py-3 px-3 sm:px-4 text-slate-600 hidden sm:table-cell">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'}</td>
+                  <td className="py-3 px-3 sm:px-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button type="button" onClick={() => { setEditingReceptionist(r); setFormData({ name: r.name, email: r.email, password: '' }); setIsModalOpen(true); }} className="p-2 hover:bg-primary-50 rounded-lg text-primary" aria-label="Edit">
+                        <Edit className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(receptionist.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                      <button type="button" onClick={() => handleDelete(r.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-600" aria-label="Delete">
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -181,75 +148,28 @@ export default function ReceptionistsPage() {
           </table>
         </div>
       ) : (
-        <EmptyState
-          icon={Users}
-          title="No receptionists found"
-          description="Add your first receptionist to get started"
-          action={{
-            label: 'Add Receptionist',
-            onClick: () => setIsModalOpen(true)
-          }}
-        />
+        <EmptyState icon={Users} title="No receptionists found" description="Add your first receptionist to get started" action={{ label: 'Add Receptionist', onClick: () => setIsModalOpen(true) }} />
       )}
 
-      {/* Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingReceptionist(null);
-        }}
-        title={editingReceptionist ? 'Edit Receptionist' : 'Add New Receptionist'}
-        size="md"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingReceptionist(null); }} title={editingReceptionist ? 'Edit Receptionist' : 'Add New Receptionist'} size="md">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="input-label">Full Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="input"
-              placeholder="Enter receptionist's name"
-              required
-            />
+            <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input" placeholder="Name" required />
           </div>
           <div>
             <label className="input-label">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="input"
-              placeholder="Enter receptionist's email"
-              required
-              disabled={!!editingReceptionist}
-            />
+            <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input" placeholder="email@example.com" required disabled={!!editingReceptionist} />
           </div>
           {!editingReceptionist && (
             <div>
               <label className="input-label">Password</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="input"
-                placeholder="Enter password"
-                required
-              />
+              <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="input" placeholder="••••••••" required />
             </div>
           )}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editingReceptionist ? 'Update' : 'Add'} Receptionist
-            </button>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary text-sm py-2 px-4">Cancel</button>
+            <button type="submit" className="btn btn-primary text-sm py-2 px-4">{editingReceptionist ? 'Update' : 'Add'} Receptionist</button>
           </div>
         </form>
       </Modal>

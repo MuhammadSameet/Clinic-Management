@@ -149,39 +149,35 @@ export default function DoctorPrescriptionPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4 sm:space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Write Prescription</h1>
-        <p className="text-gray-500">Create a new prescription for your patient</p>
+        <h1 className="text-lg sm:text-xl font-semibold text-slate-900">Write Prescription</h1>
+        <p className="text-slate-500 text-sm mt-0.5">Create a new prescription for your patient</p>
       </div>
 
-      {/* Patient Info */}
       {(appointment || patient) && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">Patient Information</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <div>
-              <p className="text-sm text-gray-500">Patient Name</p>
-              <p className="font-medium">{appointment?.patientName || patient?.name}</p>
+              <p className="text-slate-500 text-xs">Patient Name</p>
+              <p className="font-medium text-slate-900">{appointment?.patientName || patient?.name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Age</p>
-              <p className="font-medium">{patient?.age || 'N/A'} years</p>
+              <p className="text-slate-500 text-xs">Age</p>
+              <p className="font-medium text-slate-900">{patient?.age ?? 'N/A'} years</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Appointment Date</p>
-              <p className="font-medium">{appointment?.date || 'N/A'}</p>
+              <p className="text-slate-500 text-xs">Appointment Date</p>
+              <p className="font-medium text-slate-900">{appointment?.date ?? 'N/A'}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Prescription Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Diagnosis & Symptoms */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Diagnosis</h2>
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+        <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+          <h2 className="text-base font-semibold text-slate-900">Diagnosis</h2>
           
           <div>
             <label className="input-label">Diagnosis *</label>
@@ -220,22 +216,16 @@ export default function DoctorPrescriptionPage() {
           </div>
         </div>
 
-        {/* Medicines */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Medicines</h2>
-            <button
-              type="button"
-              onClick={handleAddMedicine}
-              className="btn btn-secondary flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Medicine
+        <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-base font-semibold text-slate-900">Medicines</h2>
+            <button type="button" onClick={handleAddMedicine} className="btn btn-secondary text-sm py-2 px-3 flex items-center gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Add Medicine
             </button>
           </div>
 
           {medicines.map((medicine, index) => (
-            <div key={medicine.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end p-4 bg-gray-50 rounded-xl">
+            <div key={medicine.id} className="grid grid-cols-1 md:grid-cols-5 gap-2 sm:gap-3 items-end p-3 bg-slate-50 rounded-lg border border-slate-100">
               <div>
                 <label className="input-label text-xs">Medicine Name</label>
                 <input
@@ -280,20 +270,18 @@ export default function DoctorPrescriptionPage() {
                 <button
                   type="button"
                   onClick={() => handleRemoveMedicine(medicine.id)}
-                  className="btn btn-secondary w-full flex items-center justify-center gap-2 text-red-500 hover:bg-red-50"
+                  className="btn btn-secondary text-sm py-2 w-full flex items-center justify-center gap-1.5 text-red-600 hover:bg-red-50"
                   disabled={medicines.length === 1}
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Remove
+                  <Trash2 className="w-3.5 h-3.5" /> Remove
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Instructions & Notes */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Additional Information</h2>
+        <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+          <h2 className="text-base font-semibold text-slate-900">Additional Information</h2>
           
           <div>
             <label className="input-label">Instructions</label>
@@ -318,21 +306,10 @@ export default function DoctorPrescriptionPage() {
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save Prescription
+        <div className="flex justify-end gap-2 flex-wrap">
+          <button type="button" onClick={() => router.back()} className="btn btn-secondary text-sm py-2 px-4">Cancel</button>
+          <button type="submit" className="btn btn-primary text-sm py-2 px-4 flex items-center gap-1.5">
+            <Save className="w-3.5 h-3.5" /> Save Prescription
           </button>
         </div>
       </form>

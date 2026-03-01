@@ -11,21 +11,20 @@ interface RootState {
   authStates: {
     currentUser: any;
     isAuthenticated: boolean;
+    authChecked: boolean;
   };
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { currentUser, isAuthenticated } = useSelector((state: RootState) => state.authStates);
+  const { currentUser, isAuthenticated, authChecked } = useSelector((state: RootState) => state.authStates);
 
   useEffect(() => {
-    // If not authenticated, redirect to login
+    if (!authChecked) return;
     if (!isAuthenticated || !currentUser) {
-      router.push('/');
+      router.replace('/login');
       return;
     }
-    
-    // If not admin, redirect to appropriate dashboard
     if (currentUser.role !== 'admin') {
       const redirectMap: Record<string, string> = {
         admin: '/admin/dashboard',
@@ -33,21 +32,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         receptionist: '/receptionist/dashboard',
         patient: '/patient/dashboard',
       };
-      router.push(redirectMap[currentUser.role] || '/');
+      router.replace(redirectMap[currentUser.role] || '/');
     }
   }, [isAuthenticated, currentUser, router]);
 
-  // Show loading while checking auth
-  if (!isAuthenticated || !currentUser || currentUser.role !== 'admin') {
+  if (!authChecked || !isAuthenticated || !currentUser || currentUser.role !== 'admin') {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-slate-50/80">
       <Sidebar role="admin" />
-      <div className="flex-1 flex flex-col lg:ml-64">
+      <div className="flex-1 flex flex-col min-w-0">
         <Topbar title="Admin Dashboard" />
-        <main className="flex-1 overflow-auto p-8">
+        <main className="flex-1 overflow-auto main-content section-gap">
           {children}
         </main>
       </div>
