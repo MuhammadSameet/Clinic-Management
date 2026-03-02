@@ -1,5 +1,7 @@
 # 🏥 MediCare - Medical Clinic Management System
 
+**Deploy link :** https://clinic-management-mocha.vercel.app/
+
 A comprehensive Medical Clinic Management System built with Next.js 16, TypeScript, Redux Toolkit, Tailwind CSS v4, and Firebase.
 
 ## ✨ Features
