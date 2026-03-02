@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/ui/Sidebar';
+import { SidebarProvider, useSidebar } from '@/components/ui/SidebarContext';
 import Topbar from '@/components/ui/Topbar';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -41,9 +42,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50/80">
+    <SidebarProvider>
+      <InnerAdminLayout>{children}</InnerAdminLayout>
+    </SidebarProvider>
+  );
+}
+
+function InnerAdminLayout({ children }: { children: React.ReactNode }) {
+  const { isOpen } = useSidebar();
+  return (
+    <div className="min-h-screen bg-slate-50/80">
       <Sidebar role="admin" />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 ${isOpen ? 'lg:pl-64' : 'lg:pl-20'}`}>
         <Topbar title="Admin Dashboard" />
         <main className="flex-1 overflow-auto main-content section-gap">
           {children}

@@ -3,11 +3,10 @@
 export const loginAction = (email, password) => async (dispatch) => {
   dispatch({ type: 'AUTH_LOADING' });
   try {
-    const { getAuth, signInWithEmailAndPassword } = await import('firebase/auth');
-    const { getFirestore, doc, getDoc } = await import('firebase/firestore');
-
-    const auth = getAuth();
-    const db = getFirestore();
+    // Ensure our firebase app is initialized before using auth/firestore
+    const { auth, db } = await import('@/lib/firebase');
+    const { signInWithEmailAndPassword } = await import('firebase/auth');
+    const { doc, getDoc } = await import('firebase/firestore');
 
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
@@ -37,10 +36,11 @@ export const loginAction = (email, password) => async (dispatch) => {
 
 export const logoutAction = () => async (dispatch) => {
   try {
-    const { getAuth, signOut } = await import('firebase/auth');
-    const auth = getAuth();
+    const { auth } = await import('@/lib/firebase');
+    const { signOut } = await import('firebase/auth');
     await signOut(auth);
     dispatch({ type: 'AUTH_LOGOUT' });
+    dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: null, isAuthenticated: false, authChecked: true } });
   } catch (error) {
     console.error('Logout error:', error);
   }
@@ -48,11 +48,9 @@ export const logoutAction = () => async (dispatch) => {
 
 export const createUserAction = (userData) => async (dispatch) => {
   try {
-    const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
-    const { getFirestore, doc, setDoc } = await import('firebase/firestore');
-
-    const auth = getAuth();
-    const db = getFirestore();
+    const { auth, db } = await import('@/lib/firebase');
+    const { createUserWithEmailAndPassword } = await import('firebase/auth');
+    const { doc, setDoc } = await import('firebase/firestore');
 
     const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
     
@@ -95,11 +93,9 @@ export const createUserAction = (userData) => async (dispatch) => {
 export const registerPatientAction = (formData) => async (dispatch) => {
   dispatch({ type: 'AUTH_LOADING' });
   try {
-    const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
-    const { getFirestore, doc, setDoc } = await import('firebase/firestore');
-
-    const auth = getAuth();
-    const db = getFirestore();
+    const { auth, db } = await import('@/lib/firebase');
+    const { createUserWithEmailAndPassword } = await import('firebase/auth');
+    const { doc, setDoc } = await import('firebase/firestore');
 
     const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
     
@@ -138,11 +134,9 @@ export const registerPatientAction = (formData) => async (dispatch) => {
 
 export const checkAuthState = () => async (dispatch) => {
   try {
-    const { getAuth, onAuthStateChanged } = await import('firebase/auth');
-    const { getFirestore, doc, getDoc } = await import('firebase/firestore');
-
-    const auth = getAuth();
-    const db = getFirestore();
+    const { auth, db } = await import('@/lib/firebase');
+    const { onAuthStateChanged } = await import('firebase/auth');
+    const { doc, getDoc } = await import('firebase/firestore');
 
     return new Promise((resolve) => {
       onAuthStateChanged(auth, async (user) => {
@@ -177,8 +171,8 @@ export const checkAuthState = () => async (dispatch) => {
 
 export const resetPasswordAction = (email) => async () => {
   try {
-    const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
-    const auth = getAuth();
+    const { auth } = await import('@/lib/firebase');
+    const { sendPasswordResetEmail } = await import('firebase/auth');
     await sendPasswordResetEmail(auth, email);
     return { success: true };
   } catch (error) {

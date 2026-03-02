@@ -11,6 +11,7 @@ interface RootState {
   authStates: {
     currentUser: any;
     isAuthenticated: boolean;
+    authChecked?: boolean;
   };
 }
 
@@ -18,6 +19,7 @@ export default function SignupPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { currentUser, isAuthenticated } = useSelector((state: RootState) => state.authStates);
+  const { authChecked } = useSelector((state: RootState) => state.authStates);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +37,7 @@ export default function SignupPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && currentUser) {
+    if (authChecked && isAuthenticated && currentUser) {
       const redirectPaths: Record<string, string> = {
         admin: '/admin/dashboard',
         doctor: '/doctor/dashboard',

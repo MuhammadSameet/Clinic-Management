@@ -17,6 +17,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.4.1",
+    "sweetalert2": "^11.7.27",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1"
   },

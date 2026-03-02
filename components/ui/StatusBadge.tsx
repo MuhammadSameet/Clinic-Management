@@ -14,6 +14,7 @@ const statusConfig = {
   cancelled: { bg: 'bg-red-50',    text: 'text-red-800', label: 'Cancelled' },
   low:       { bg: 'bg-green-50',   text: 'text-green-800', label: 'Low Risk' },
   medium:    { bg: 'bg-amber-50',   text: 'text-amber-800', label: 'Medium Risk' },
+  
   high:      { bg: 'bg-red-50',     text: 'text-red-800', label: 'High Risk' },
   male:      { bg: 'bg-primary-50', text: 'text-primary-dark', label: 'Male' },
   female:    { bg: 'bg-pink-50',    text: 'text-pink-800', label: 'Female' },

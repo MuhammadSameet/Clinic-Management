@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Plus, Search, Edit, Trash2, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
@@ -68,7 +69,15 @@ export default function ReceptionistPatientsPage() {
   };
 
   const handleDelete = async (patientId: string) => {
-    if (!confirm('Are you sure you want to delete this patient?')) return;
+    const result = await Swal.fire({
+      title: 'Delete patient? ',
+      text: 'Are you sure you want to delete this patient?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+    });
+    if (!result.isConfirmed) return;
     try {
       const { deleteDoc, doc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');

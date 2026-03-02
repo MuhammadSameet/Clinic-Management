@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Plus, Search, Edit, Trash2, Users } from 'lucide-react';
+import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -43,13 +44,18 @@ export default function ReceptionistsPage() {
         toast.success('Receptionist updated successfully');
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        await addDoc(collection(db, 'users'), {
-          uid: userCredential.user.uid,
+        const uid = userCredential.user.uid;
+        const createdBy = auth.currentUser?.uid || uid;
+        const userDoc = {
           name: formData.name,
           email: formData.email,
           role: 'receptionist',
-          createdAt: new Date().toISOString()
-        });
+          createdAt: new Date().toISOString(),
+          createdBy,
+        };
+        const { doc, setDoc } = await import('firebase/firestore');
+        await setDoc(doc(db, 'users', uid), userDoc);
+        await setDoc(doc(db, 'receptionists', uid), { ...userDoc, createdBy });
         toast.success('Receptionist added successfully');
       }
       setIsModalOpen(false);
@@ -62,7 +68,15 @@ export default function ReceptionistsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this receptionist?')) return;
+    const result = await Swal.fire({
+      title: 'Delete receptionist? ',
+      text: 'Are you sure you want to delete this receptionist?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+    });
+    if (!result.isConfirmed) return;
     try {
       const { deleteDoc, doc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');

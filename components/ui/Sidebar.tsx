@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useSidebar } from './SidebarContext';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -73,7 +74,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ role }: SidebarProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const { isOpen, setIsOpen } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -81,10 +82,19 @@ export default function Sidebar({ role }: SidebarProps) {
   const config = roleConfig[role] || roleConfig.patient;
 
   const handleLogout = () => {
-    dispatch({ type: 'AUTH_LOGOUT' });
-    dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: null, isAuthenticated: false } });
-    localStorage.removeItem('auth');
-    router.push('/login');
+    (async () => {
+      try {
+        const { auth } = await import('@/lib/firebase');
+        const { signOut } = await import('firebase/auth');
+        await signOut(auth);
+      } catch (e) {
+        console.error('Sign out error:', e);
+      }
+      dispatch({ type: 'AUTH_LOGOUT' });
+      dispatch({ type: 'UPDATE_AUTH_STATE', payload: { currentUser: null, isAuthenticated: false, authChecked: true } });
+      localStorage.removeItem('auth');
+      router.push('/login');
+    })();
   };
 
   return (
@@ -111,26 +121,44 @@ export default function Sidebar({ role }: SidebarProps) {
         className={`
           h-screen bg-white flex flex-col
           border-r border-slate-200 shadow-lg
-          fixed lg:relative left-0 top-0 z-50 lg:z-auto
+          fixed left-0 top-0 z-50
           transition-all duration-300 ease-in-out
-          lg:translate-x-0
-          overflow-y-auto
           ${isOpen ? 'w-64 translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0'}
         `}
       >
-        {/* Logo Section */}
+        {/* Logo Section: show toggle button to the right; when closed hide logo/title and show only button */}
         <div className="h-20 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <Link href="/" className="flex items-center gap-3 w-full group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:scale-105 shrink-0">
-              <Stethoscope className="w-5 h-5 text-white" />
-            </div>
-            {isOpen && (
-              <div className="min-w-0">
-                <h1 className="font-bold text-slate-900 text-base truncate">MediCare</h1>
-                <p className="text-xs text-slate-500 font-medium truncate">{config.title}</p>
+          {isOpen ? (
+            <>
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                  <Stethoscope className="w-5 h-5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="font-bold text-slate-900 text-base truncate">MediCare</h1>
+                  <p className="text-xs text-slate-500 font-medium truncate">{config.title}</p>
+                </div>
               </div>
-            )}
-          </Link>
+
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="hidden lg:flex items-center justify-center ml-3 p-2 rounded-xl bg-white shadow-sm hover:shadow transition-all border border-slate-100"
+                aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              >
+                <X className="w-4 h-4 text-slate-900" />
+              </button>
+            </>
+          ) : (
+            <div className="w-full flex items-center justify-center">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-center p-2 rounded-xl bg-white shadow-sm hover:shadow transition-all border border-slate-100"
+                aria-label="Open sidebar"
+              >
+                <Menu className="w-4 h-4 text-slate-900" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
@@ -184,14 +212,7 @@ export default function Sidebar({ role }: SidebarProps) {
         </div>
       </aside>
 
-      {/* Collapse/Expand Button (Desktop Only) */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="hidden lg:flex fixed bottom-6 left-6 z-40 p-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all"
-        title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-      >
-        <Menu className="w-5 h-5" />
-      </button>
+      
     </>
   );
 }

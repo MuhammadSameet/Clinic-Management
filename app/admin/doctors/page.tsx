@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Plus, Search, Edit, Trash2, UserCheck } from 'lucide-react';
+import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -53,14 +54,19 @@ export default function DoctorsPage() {
         toast.success('Doctor updated successfully');
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        await addDoc(collection(db, 'users'), {
-          uid: userCredential.user.uid,
+        const uid = userCredential.user.uid;
+        const createdBy = auth.currentUser?.uid || uid;
+        const userDoc = {
           name: formData.name,
           email: formData.email,
           specialty: formData.specialty,
           role: 'doctor',
-          createdAt: new Date().toISOString()
-        });
+          createdAt: new Date().toISOString(),
+          createdBy,
+        };
+        const { doc, setDoc } = await import('firebase/firestore');
+        await setDoc(doc(db, 'users', uid), userDoc);
+        await setDoc(doc(db, 'doctors', uid), { ...userDoc, createdBy });
         toast.success('Doctor added successfully');
       }
       setIsModalOpen(false);
@@ -73,13 +79,21 @@ export default function DoctorsPage() {
   };
 
   const handleDelete = async (doctorId: string) => {
-    if (!confirm('Are you sure you want to delete this doctor?')) return;
+    const result = await Swal.fire({
+      title: 'Delete doctor? ',
+      text: 'Are you sure you want to delete this doctor?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+    });
+    if (!result.isConfirmed) return;
     try {
       const { deleteDoc, doc } = await import('firebase/firestore');
-      const { deleteUser } = await import('firebase/auth');
-      const { db, auth } = await import('@/lib/firebase');
+      const { db } = await import('@/lib/firebase');
       await deleteDoc(doc(db, 'users', doctorId));
-      try { await deleteUser(auth.currentUser!); } catch (e) {}
+      // Also remove role-specific doc if exists
+      try { const { deleteDoc, doc: d } = await import('firebase/firestore'); await deleteDoc(d(db, 'doctors', doctorId)); } catch (e) {}
       toast.success('Doctor deleted successfully');
       fetchDoctors();
     } catch (error: any) {
